@@ -144,11 +144,17 @@ popd >/dev/null
 if [[ -z "$DONT_RUN" ]]; then
 	if [ "$program" == "jmavsim" ]; then
 		pkill -9 -P $SIM_PID
-		kill -9 $SIM_PID
 	elif [ "$program" == "gazebo" ]; then
-		kill -9 $SIM_PID
+		# Give it a chance to clean up by sending SIGINT
+		kill -SIGINT $SIM_PID
 		if [[ ! -n "$HEADLESS" ]]; then
-			kill -9 $GUI_PID
+			kill -SIGINT $GUI_PID
+		fi
+		# Later kill it anyway.
+		sleep 1
+		kill -SIGKILL $SIM_PID
+		if [[ ! -n "$HEADLESS" ]]; then
+			kill -SIGKILL $GUI_PID
 		fi
 	fi
 fi
